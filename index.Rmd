@@ -2,6 +2,7 @@
 title: "EDLD 652 Final Project by Mallory Pennington"
 output: 
   flexdashboard::flex_dashboard:
+    theme: journal
     orientation: columns
     vertical_layout: fill
 ---
@@ -13,6 +14,8 @@ library(here)
 library(tidyverse)
 library(gghighlight)
 library(scales)
+library(plotly)
+library(RColorBrewer)
 
 data = read.csv("replication.csv")
 ```
@@ -25,92 +28,141 @@ Introduction to the data {.sidebar}
 
 Data was collected in "The lure of counterfactual curiosity: people incur a cost to experience
 regret" (FitzGibbon, Komiya, & Murayama, 2021). Access to the study and data via the Open Science Foundation can be found [here](https://osf.io/jm3uc). The data included 361 participants.
-The present experiment was a replication of similar experiments by FitzGibbon and colleagues
-(FitzGibbon, Komiya, & Murayama, 2021). The study was conducted online through Prolific and
-participants completed BART (Ballon Analogue Risk Task) trials of a balloon-pumping game
-that involved pumping a balloon for points with the potential to "over-fill" the balloon and have
-it pop (bust). If the balloon was not pumped past its limit, participants banked those points
-(bank). Participants completed 10 BART trials as practice, then one "critical trial" where a
-real-life monetary reward was involved (20 pence per pump, provided they banked). Participants
-rated their emotions on a visual scale (happy face to sad face, left to right, scored from -200 to
-200) after each trial, but only after the critical trial were they asked if they wished to see the
-balloon's limit (after they banked only). The "cost" of choosing to see the balloon's limit
-retroactively was waiting time (30 s). The balloon's limit in each trial was randomly determined
-by pulling from a uniform distribution between 0 (burst after 1 pump) and 12 (not burst after 12
-pumps). Both participants who did and who did not choose to wait and see the balloon's limit
-retroactively then rated their emotions once again on the same scale.
-Variables in the dataset include the number of pumps by each participant, whether the participant
-banked or busted, whether a banking participant chose to see the balloon’s limit, participants’
-emotional ratings both before and after seeing results, how many winnings a participant earned,
-and the difference between banking participants’ number of pumps and total possible number of
-pumps on a given trial.
+
+In this experiment, participants completed BART (Balloon Analogue Risk Task) trials, intended to assess risk-taking behaviors. In these trials, participants would play a balloon-pumping computer game that involved pumping air into a balloon for points with the potential to "over-fill" the balloon and have it pop (this was considered a **BUST**). If the balloon was not filled past its limit, which was randomly determined, participants won a number of points relative to how full the balloon became (this was considered a **BANK**, and the points earned were considered **WINNINGS** and correlated to monetary value).
+
+The study investigated participant's emotions (on a -200 to 200 point scale) throughout this experiment to assess the connection between emotion/disappointment, risk-taking behaviors, and curiosity. 
+
+The graphs on this page illustrate some basic descriptive information about the dataset, including how many participants banked vs. busted, what their emotions were, and how many pumps the groups did. The graph to the right indicates the relationship between gender and whether the participant banked or busted. 
 
 
-Column {data-width=350}
+Column {data-width=350} {.tabset}
 -----------------------------------------------------------------------
 
-### Initial emotion rating
+### Initial emotion rating (Final iteration)
 
 ```{r}
-p1 = ggplot(data, aes(x=n_pumps, y=emo_rating_1, color=outcome))
-p1 + geom_point() + geom_jitter() + theme_minimal() + labs(title = "Initial Emotional Rating post-trial vs. Number of pumps", subtitle = "Emotion ratings range from -200 to 200, with more negative ratings indicating more negative emotional state.", x="Number of pumps", y="Emotion rating", color="Outcome") + scale_x_continuous(breaks=pretty_breaks())
+p1 = ggplot(data, aes(x=n_pumps, y=emo_rating_1, color=outcome, text = paste('Pumps:', n_pumps,
+                                                                             '<br> Emotion:', emo_rating_1,
+                                                                             '<br> Outcome:', outcome))) +
+  geom_point() + geom_jitter() + theme_minimal() + scale_x_continuous(breaks=pretty_breaks()) + labs(subtitle = "Emotion ratings range from -200 to 200, with more negative ratings indicating \n more negative emotional state.", x="Number of pumps", y="Emotion rating", color="Outcome", title = "Participants who 'banked'--i.e., successfully earned money on their trial--rated \n their emotions higher than those who 'busted', or did not earn any money.") + scale_color_brewer(palette="Set1")
+
+ggplotly(p1, tooltip="text")
+
+
+
+## labs(title = "Initial Emotional Rating post-trial vs. Number of pumps", subtitle = "Emotion ratings range from -200 to 200, with more negative ratings indicating \n more negative emotional state.", x="Number of pumps", y="Emotion rating", color="Outcome", caption = "Participants who 'banked'--i.e., successfully earned money on their trial--rated \n their emotions higher than those who 'busted', or did not earn any money.")
+```
+
+### First iteration
+
+```{r}
+pfirstvers1 = ggplot(data, aes(x=n_pumps, y=emo_rating_1, color=outcome))
+pfirstvers1 + geom_point() + geom_jitter() + theme_minimal() + labs(title = "Initial Emotional Rating post-trial vs. Number of pumps", subtitle = "Emotion ratings range from -200 to 200, with more negative ratings indicating more negative emotional state.", x="Number of pumps", y="Emotion rating", color="Outcome") + scale_x_continuous(breaks=pretty_breaks())
 ```
 
 
-Column {data-width=350}
+Column {data-width=350} {.tabset}
 -----------------------------------------------
-### Gender
+### Gender (Final iteration)
 
 ```{r}
-p2 = ggplot(data, aes(x=gender, fill=outcome))
+p2 = ggplot(data, aes(x=gender, fill=outcome)) + geom_bar(position = position_dodge()) + theme_minimal() + labs(title="Outcome of trial by gender", x="Gender Identity", y = "Number of participants", fill="Outcome") + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) + scale_y_continuous(breaks = c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150)) + scale_fill_brewer(palette="Set1")
 
-p2 + geom_bar(position = position_dodge()) + theme_minimal() + labs(title="Outcome of trial by gender", x="Gender Identity", y = "Number of participants", fill="Outcome") + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+ggplotly(p2)
+```
+
+
+### First iteration
+
+```{r}
+p2firstversion = ggplot(data, aes(x=gender, fill=outcome))
+
+p2firstversion + geom_bar(position = position_dodge()) + theme_minimal() + labs(title="Outcome of trial by gender", x="Gender Identity", y = "Number of participants", fill="Outcome") + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
 panel.background = element_blank(), axis.line = element_line(colour = "black"))
 ```
 
 
-Disappointment and pump limit 
+Disappointment and pump limit {data-orientation=columns}
 ======================
 
-Column {data-width=350}
+More about the data {.sidebar}
+--------------------------------
+
+The graphs on this page are intended to illustrate **disappointment**, as measured via the change between emotion ratings at time one versus at time two, in relation to how many pumps a participant _could_ have had after banking (i.e., the difference between the pump limit and the actual number of pumps a participant did). 
+
+At **time one**, all participants, regardless of outcome (bank or bust), ranked their emotions. The data used in these visualizations _only includes participants in the bank outcome_, who were then asked whether they wished to know the true pump limit, and therefore how many "missed" pumps they could have gotten if they had kept going. Participants who chose to seek the true pump limit incurred a "cost" of a 30 second wait time before learning the pump limit. At this point, both participants who did and who did not seek the true pump limit rated their emotions again, and this was **time two**. 
+
+The graphs on the left and the right are identical except that on the right they are goruped by whether the true pump limit was sought. The top row of graphs considers winnings, whereas the bottom row does not, for greater clarity. 
+
+Column {data-width=350} {.tabset}
 -----------------------------------------------------------------------
 
-### Disappointment vs. pump limit
+### How does disappointment vary based on how many pumps were missed? 
 
 ```{r}
 data2 = data %>% 
   filter(outcome == "bank") %>% 
   mutate(limit_diff = limit-n_pumps)
 
-p3 = ggplot(data2, aes(x=limit_diff, y=emo_diff, size=winnings, alpha=winnings))
-p3 + geom_point() + geom_jitter() + geom_smooth(method ='lm', show.legend=FALSE) + theme_minimal() + labs(title="Disappointment vs. distance left to the pump limit", x="Difference between pump maximum and # of pumps", y="Change in emotion rating", alpha="Winnings", size="Winnings") + scale_x_continuous(breaks=pretty_breaks())
+p3 = ggplot(data2, aes(x=limit_diff, y=emo_diff, size=winnings, alpha=winnings, )) + geom_smooth(method ='lm', show.legend=FALSE) + geom_point(aes(text = paste('Distance to limit:', limit_diff,
+                                                                                              '<br> Change in emotion:', emo_diff,
+                                                                                              '<br> Winnings:', winnings))) + geom_jitter()+ theme_minimal() + labs(title="Disappointment vs. distance left to the pump limit", x="Difference between pump maximum and # of pumps", y="Change in emotion rating", alpha="Winnings", size="Winnings") + scale_x_continuous(breaks=pretty_breaks()) + scale_size(range = c(0, 5))
+
+
+ggplotly(p3, tooltip="text")
+
 ```
 
-### (Another iteration, without winnings)
+### First iteration
+
 ```{r}
-p9 = ggplot(data2, aes(x=limit_diff, y=emo_diff))
-
-p9 + geom_point() + geom_jitter() + geom_smooth(method ='lm', show.legend=FALSE) + theme_minimal() + labs(title="Disappointment vs. distance left to the pump limit", x="Difference between pump maximum and # of pumps", y="Change in emotion rating") + scale_x_continuous(breaks=pretty_breaks())
+p3firstvers = ggplot(data2, aes(x=limit_diff, y=emo_diff, size=winnings, alpha=winnings))
+p3firstvers + geom_point() + geom_jitter() + geom_smooth(method ='lm', show.legend=FALSE) + theme_minimal() + labs(title="Disappointment vs. distance left to the pump limit", x="Difference between pump maximum and # of pumps", y="Change in emotion rating", alpha="Winnings", size="Winnings") + scale_x_continuous(breaks=pretty_breaks())
 ```
 
+### Another iteration, without winnings
 
-Column {data-width=350}
+```{r}
+p9 = ggplot(data2, aes(x=limit_diff, y=emo_diff)) + geom_smooth(method ='lm', show.legend=FALSE) + geom_point(aes(text = paste('Distance to limit:', limit_diff,
+                                                                                              '<br> Change in emotion:', emo_diff,
+                                                                                              '<br> Winnings:', winnings))) + geom_jitter() + theme_minimal() + labs(title="Disappointment vs. distance left to the pump limit", x="Difference between pump maximum and # of pumps", y="Change in emotion rating") + scale_x_continuous(breaks=pretty_breaks())
+
+ggplotly(p9, tooltip="text")
+```
+
+Column {data-width=350} {.tabset}
 -----------------------------------------------------------------------
 
 ### What about participants who decided to seek the true pump limit, vs. those who didn't?
 
 ```{r}
-p4 = ggplot(data2, aes(x=limit_diff, y=emo_diff, color=information_seeking, size=winnings, alpha=winnings))
+p4 = ggplot(data2, aes(x=limit_diff, y=emo_diff, color=information_seeking, size=winnings, alpha=winnings)) + geom_smooth(method='lm', show.legend=FALSE) + geom_point(aes(text = paste('Distance to limit:', limit_diff,
+                                                                                              '<br> Change in emotion:', emo_diff,
+                                                                                              '<br> Winnings:', winnings,
+                                                                                              '<br> Information sought?:', information_seeking))) + geom_jitter() + theme_minimal() + labs(title="Disappointment over pump limit by whether true pump limit \n was sought", x="Difference between pump maximum and # of pumps", y="Change in emotion rating", color="Information sought?", size="Winnings", alpha="Winnings") + scale_x_continuous(breaks=pretty_breaks()) + scale_size(range = c(0, 5)) + scale_color_brewer(palette="Set1")
 
-p4 + geom_point() + geom_jitter() + geom_smooth(method='lm', show.legend=FALSE) + theme_minimal() + labs(title="Disappointment over pump limit by whether true pump limit was sought", x="Difference between pump maximum and # of pumps", y="Change in emotion rating", color="Information sought?", size="Winnings", alpha="Winnings") + scale_x_continuous(breaks=pretty_breaks())
+ggplotly(p4, tooltip="text")
 ```
 
-### (Another iteration, without winnings)
+### First iteration
 
 ```{r}
-p10 = ggplot(data2, aes(x=limit_diff, y=emo_diff, color=information_seeking))
+p4firstvers = ggplot(data2, aes(x=limit_diff, y=emo_diff, color=information_seeking, size=winnings, alpha=winnings))
 
-p10 + geom_point() + geom_jitter() + geom_smooth(method='lm', show.legend=FALSE) + theme_minimal() + labs(title="Disappointment over pump limit by whether true pump limit was sought", x="Difference between pump maximum and # of pumps", y="Change in emotion rating", color="Information sought?") + scale_x_continuous(breaks=pretty_breaks())
+p4firstvers + geom_point() + geom_jitter() + geom_smooth(method='lm', show.legend=FALSE) + theme_minimal() + labs(title="Disappointment over pump limit by whether true pump limit was sought", x="Difference between pump maximum and # of pumps", y="Change in emotion rating", color="Information sought?", size="Winnings", alpha="Winnings") + scale_x_continuous(breaks=pretty_breaks())
+```
+
+
+### Another iteration, without winnings
+```{r}
+p10 = ggplot(data2, aes(x=limit_diff, y=emo_diff, color=information_seeking)) + geom_smooth(method='lm', show.legend=FALSE) + geom_point(aes(text = paste('Distance to limit:', limit_diff,
+                                                                                              '<br> Change in emotion:', emo_diff,
+                                                                                              '<br> Winnings:', winnings,
+                                                                                              '<br> Information sought?:', information_seeking))) + geom_jitter() + theme_minimal() + labs(title="Disappointment over pump limit by whether true pump limit \n was sought", x="Difference between pump maximum and # of pumps", y="Change in emotion rating", color="Information sought?") + scale_x_continuous(breaks=pretty_breaks()) + scale_color_brewer(palette="Set1")
+
+ggplotly(p10, tooltip="text")
 ```
 
 
@@ -118,7 +170,14 @@ p10 + geom_point() + geom_jitter() + geom_smooth(method='lm', show.legend=FALSE)
 Disappointment and winnings {data-orientation=rows}
 ====================== 
 
-Row {data-height=600}
+Even More about the data {.sidebar}
+--------------------------------
+
+These graphs look closer at the **disappointment** aspect, where, on average, participants showed a negative change in their emotions between time one and time two.  
+
+The bottom row of graphs is the same as the top row, but each graph **highlights** a certain subset of the participants (e.g., those whose winnings were less than average, to investigate how money may play a role). 
+
+Row {data-height=550} {.tabset}
 -----------------------------------------------------------------------
 
 ### Emotions across time
@@ -151,41 +210,42 @@ mw = mean(data$winnings, na.rm=TRUE)
 mm = mean(data$missed, na.rm = TRUE)
 
 
-p5 = ggplot(test, aes(x = time, y = emo_rating))
+p5 = ggplot(test, aes(x = time, y = emo_rating)) + geom_point(alpha=0.5) + geom_line(aes(group=subject), lty=3, alpha=0.5) + geom_point(aes(x=1, y=m1), color="#E41A1C") + geom_point(aes(x=2, y=m2), color="#E41A1C") + geom_segment(aes(x=1, y=m1, xend=2, yend=m2), color="#E41A1C", size=2) + theme_minimal() + labs(title="Average emotion rating before and after information seeking \n time period", subtitle="Banked participants only. Red represents mean at each time point.", x="Time point", y="Emotion rating") + scale_x_continuous(breaks=c(1, 2)) + theme(panel.background = element_blank())
 
-#with avg
-
-p5 + geom_point(alpha=0.5) + geom_line(aes(group=subject), lty=3, alpha=0.5) + geom_point(aes(x=1, y=m1), color="red") + geom_point(aes(x=2, y=m2), color="red") + geom_segment(aes(x=1, y=m1, xend=2, yend=m2), color="red", size=2) + theme_minimal() + labs(title="Average emotion rating before and after information seeking time period", subtitle="Banked participants only. Red represents mean at each time point.", x="Time point", y="Emotion rating") + scale_x_continuous(breaks=c(1, 2)) + theme(panel.background = element_blank())
-
+p5
 ```
 
-
-Row {data-height=350}
------------------------------------------------------------------------
-
-### Winnings less than average
+### Winnings less than average highlighted
 ```{r}
 #when winnings less than avg
-p5 + geom_point(color = "red") + geom_line(aes(group=subject), lty=1, color = "red")  + gghighlight(winnings < mw) + theme_minimal() + labs(x = "Time point", y="Emotion rating") + scale_x_continuous(breaks=c(1, 2)) + theme(panel.background = element_blank())
+
+p6 = ggplot(test, aes(x = time, y = emo_rating)) + geom_point(color = "#E41A1C") + geom_line(aes(group=subject), lty=1, color = "#E41A1C")  + gghighlight(winnings < mw) + theme_minimal() + labs(x = "Time point", y="Emotion rating") + scale_x_continuous(breaks=c(1, 2)) + theme(panel.background = element_blank())
+
+p6
 ```
 
-### Winnings greater than average
+### Winnings greater than average highlighted
 ```{r}
 #when winnings greater than avg
-p5 + geom_point(color = "green") + geom_line(aes(group=subject), lty=1, color = "green")  + gghighlight(winnings > mw) + theme_minimal() + labs(x = "Time point", y="Emotion rating") + scale_x_continuous(breaks=c(1, 2)) + scale_x_continuous(breaks=c(1, 2)) + theme(panel.background = element_blank())
+p7 = ggplot(test, aes(x = time, y = emo_rating)) + geom_point(color = "#377EB8") + geom_line(aes(group=subject), lty=1, color = "#377EB8")  + gghighlight(winnings > mw) + theme_minimal() + labs(x = "Time point", y="Emotion rating") + scale_x_continuous(breaks=c(1, 2)) + scale_x_continuous(breaks=c(1, 2)) + theme(panel.background = element_blank())
+
+p7
 ```
 
-### Missed pumps less than average
+### Missed pumps less than average highlighted
 ```{r}
 #when missed less than avg
-p5 + geom_point(color = "violet") + geom_line(aes(group=subject), lty=1, color = "violet")  + gghighlight(missed < mm) + theme_minimal() + labs(x = "Time point", y="Emotion rating") + scale_x_continuous(breaks=c(1, 2)) + scale_x_continuous(breaks=c(1, 2)) + theme(panel.background = element_blank())
+p8 = ggplot(test, aes(x = time, y = emo_rating)) + geom_point(color = "#4DAF4A") + geom_line(aes(group=subject), lty=1, color = "#4DAF4A")  + gghighlight(missed < mm) + theme_minimal() + labs(x = "Time point", y="Emotion rating") + scale_x_continuous(breaks=c(1, 2)) + scale_x_continuous(breaks=c(1, 2)) + theme(panel.background = element_blank())
+
+p8
 ```
 
-### Missed pumps greater than average
+### Missed pumps greater than average highlighted
 ```{r}
 #when missed greater than avg
-p5 + geom_point(color = "cyan") + geom_line(aes(group=subject), lty=1, color = "cyan")  + gghighlight(missed > mm) + theme_minimal() + labs(x = "Time point", y="Emotion rating") + scale_x_continuous(breaks=c(1, 2)) + theme(panel.background = element_blank())
+p12 = ggplot(test, aes(x = time, y = emo_rating)) + geom_point(color = "#984EA3") + geom_line(aes(group=subject), lty=1, color = "#984EA3")  + gghighlight(missed > mm) + theme_minimal() + labs(x = "Time point", y="Emotion rating") + scale_x_continuous(breaks=c(1, 2)) + theme(panel.background = element_blank())
+
+p12
 ```
 
-```
 
